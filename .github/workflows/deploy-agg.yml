@@ -1,0 +1,54 @@
+
+# ------------------------------
+# GitHub Actions: deploy-agg.yml
+# ------------------------------
+# Save as: .github/workflows/deploy-agg.yml
+
+name: Deploy Agg
+
+on:
+  push:
+    branches: ["master"]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build, tag, and push image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_REPO_NAME: agg-app
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.AGG_HOST }}
+          username: ec2-user
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            docker pull ${{ steps.login-ecr.outputs.registry }}/agg-app:${{ github.sha }}
+            docker stop agg_app || true
+            docker rm agg_app || true
+            docker run -d --name agg_app -p 4000:4000 --restart always ${{ steps.login-ecr.outputs.registry }}/agg-app:${{ github.sha }}
