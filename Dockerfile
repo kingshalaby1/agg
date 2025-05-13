@@ -4,7 +4,7 @@
 # Save as: Dockerfile (in agg repo root)
 # ------------------------------
 
-FROM hexpm/elixir:1.15.4-erlang-26.1.2-alpine-3.18 AS build
+FROM elixir:1.18.3-otp-26-alpine AS build
 
 RUN apk add --no-cache build-base git
 WORKDIR /app
