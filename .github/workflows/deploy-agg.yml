@@ -1,4 +1,3 @@
-
 # ------------------------------
 # GitHub Actions: deploy-agg.yml
 # ------------------------------
@@ -36,19 +35,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_REPO_NAME: agg-app
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$IMAGE_REPO_NAME:$IMAGE_TAG
-
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v0.1.10
-        with:
-          host: ${{ secrets.AGG_HOST }}
-          username: ec2-user
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            docker pull ${{ steps.login-ecr.outputs.registry }}/agg-app:${{ github.sha }}
-            docker stop agg_app || true
-            docker rm agg_app || true
-            docker run -d --name agg_app -p 4000:4000 --restart always ${{ steps.login-ecr.outputs.registry }}/agg-app:${{ github.sha }}
