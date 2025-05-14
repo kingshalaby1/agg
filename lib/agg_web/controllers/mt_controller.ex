@@ -14,6 +14,8 @@ defmodule AggWeb.MTController do
       case Agg.TeslaClient.post("/dlr", payload) do
         {:ok, %Tesla.Env{status: 200}} ->
           Logger.info("DLR sent for #{msg_id}")
+        {:ok, %Tesla.Env{status: st}} ->
+          Logger.info("DLR sent for #{msg_id} but got status #{st}")  
         {:error, reason} ->
           Logger.error("Failed to send DLR: #{inspect(reason)}")
       end
