@@ -21,7 +21,7 @@ RUN mix deps.get && mix deps.compile
 # Build application
 COPY . .
 RUN MIX_ENV=prod mix compile
-RUN MIX_ENV=prod mix phx.digest
+RUN MIX_ENV=prod mix phx.digest || true
 RUN MIX_ENV=prod mix release
 
 # ------------------------------
@@ -37,6 +37,8 @@ COPY --from=build /app/_build/prod/rel/agg .
 ENV REPLACE_OS_VARS=true \
     MIX_ENV=prod \
     SECRET_KEY_BASE=super_secret_dummy_key \
-    PHX_SERVER=true
+    PHX_SERVER=true \
+    PORT=4000 \
+    PHX_HOST=0.0.0.0
 
 ENTRYPOINT ["/app/bin/agg", "start"]
