@@ -23,7 +23,7 @@ config :agg, AggWeb.Endpoint,
 
   config :agg, Agg.TeslaClient,
          base_url: "http://umm-alb-1438641624.us-east-1.elb.amazonaws.com"
-         
+
 # Configures the mailer
 #
 # By default it uses the "Local" adapter which stores the emails
