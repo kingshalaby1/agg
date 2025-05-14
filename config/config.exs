@@ -22,7 +22,8 @@ config :agg, AggWeb.Endpoint,
   live_view: [signing_salt: "O+OOhVzN"]
 
   config :agg, Agg.TeslaClient,
-         base_url: "http://umm-alb-1438641624.us-east-1.elb.amazonaws.com"
+         base_url: "http://umm-alb-752821311.us-east-1.elb.amazonaws.com"
+#umm-alb-752821311.us-east-1.elb.amazonaws.com
 
 # Configures the mailer
 #
