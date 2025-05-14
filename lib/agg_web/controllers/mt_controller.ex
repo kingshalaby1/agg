@@ -1,15 +1,23 @@
 defmodule AggWeb.MTController do
   use AggWeb, :controller
 
-  def create(conn, %{"sleep_for_ms" => ms} = body) do
-    :timer.sleep(ms)
+  require Logger
 
-    dlr_body =
-      body
-      |> Map.put("status", "delivered")
-      |> Map.put("delivered_at", DateTime.utc_now())
+  def create(conn, %{"message_id" => msg_id, "sleep_for_ms" => ms} = params) do
+    Task.start(fn ->
+      :timer.sleep(ms)
+      payload =
+        params
+        |> Map.put("status_code", 4)
+        |> Map.put("delivered_at", DateTime.utc_now() |> DateTime.to_iso8601())
 
-    Agg.TeslaClient.post("/dlr", dlr_body)
+      case Agg.TeslaClient.post("/dlr", payload) do
+        {:ok, %Tesla.Env{status: 200}} ->
+          Logger.info("DLR sent for #{msg_id}")
+        {:error, reason} ->
+          Logger.error("Failed to send DLR: #{inspect(reason)}")
+      end
+    end)
 
     send_resp(conn, 200, "sent")
   end
